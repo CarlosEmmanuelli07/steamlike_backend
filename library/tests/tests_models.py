@@ -66,3 +66,36 @@ class LibraryEntryExternalIdLengthTests(TestCase):
         # Comprobaciones
         with self.assertRaises(TypeError):
             entry.external_id_length()
+
+class LibraryEntryExternalIdUpper(TestCase):
+    def test_external_id_upper(self):
+        # Precondition
+        entry = LibraryEntry(external_game_id="emmanuelli")
+
+        # Call
+        chain = entry.external_id_upper()
+
+        # Check
+        self.assertEqual(chain, "EMMANUELLI")
+
+class LibraryEntryHoursPlayedLabel(TestCase):
+    def test_hours_played_label_0(self):
+        # Precondition
+        entry = LibraryEntry(hours_played=0)
+
+        # Call
+        lable = entry.hours_played_label()
+
+        # Check
+        self.assertEqual(lable, "none")
+
+        
+    def test_hours_played_label_0(self):
+        # Precondition
+        entry = LibraryEntry(hours_played=0)
+
+        # Call
+        lable = entry.hours_played_label()
+
+        # Check
+        self.assertEqual(lable, "none")
