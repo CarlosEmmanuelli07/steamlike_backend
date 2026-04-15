@@ -99,3 +99,25 @@ class LibraryEntryHoursPlayedLabel(TestCase):
 
         # Check
         self.assertEqual(lable, "none")
+
+    def testest_hours_played_label_1(self):
+        # Precondition
+        entry = LibraryEntry(hours_played = 1)
+
+        # Call 
+        lable = entry.hours_played_label()
+
+        # Check
+        self.assertLess(lable, "low")
+
+    def test_hours_played_label_2(self):
+        # Precondition
+        entry = LibraryEntry(hours_played = 20)
+
+        # Call 
+        lable = entry.hours_played_label()
+
+        # Check
+        self.assertLess(lable, "high")
+
+    #def test_status_value(self):
