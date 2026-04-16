@@ -6,7 +6,7 @@ from .models import LibraryEntry
 
 @require_GET
 def health(request):
-    return JsonResponse({"status": "0ok"})
+    return JsonResponse({"status": "ok"})
 
 ## Error function
 def error(details):
