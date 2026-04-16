@@ -20,7 +20,7 @@ def error(details):
 def duplicated_error(details):
     return JsonResponse({
         "error": "duplicate_entry",
-        "message": "That game already exists",
+        "message": "That info already exists",
         "details": { details: "duplicate"}
     })
 
@@ -137,3 +137,19 @@ def get_id_game(request, id):
             "status": entry.status,
             "hours_played": entry.hours_played
         }, status = 200)
+    
+@csrf_exempt
+def add_user(resquest):
+
+    if resquest != "POST":
+        data = json.loads(resquest.body)
+
+        user = data.get("user")
+
+    try:
+        if not (isinstance(user, str)):
+            return duplicated_error("user already exists")
+    except Exception as e:
+            JsonResponse({
+                "error": str(e)
+            }, status = 400)
