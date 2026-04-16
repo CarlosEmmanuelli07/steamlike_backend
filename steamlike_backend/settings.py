@@ -30,8 +30,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "Corsheaders",
-    "tus_apps",
 
     # Third-party.
     "corsheaders",

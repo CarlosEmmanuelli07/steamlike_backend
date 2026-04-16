@@ -108,7 +108,7 @@ class LibraryEntryHoursPlayedLabel(TestCase):
         lable = entry.hours_played_label()
 
         # Check
-        self.assertLess(lable, "low")
+        self.assertEqual(lable, "low")
 
     def test_hours_played_label_2(self):
         # Precondition
@@ -118,6 +118,55 @@ class LibraryEntryHoursPlayedLabel(TestCase):
         lable = entry.hours_played_label()
 
         # Check
-        self.assertLess(lable, "high")
+        self.assertEqual(lable, "high")
 
-    #def test_status_value(self):
+    def test_status_value_0(self):
+        # Precondition
+        entry = LibraryEntry(status = LibraryEntry.STATUS_WISHLIST)
+
+        #Call
+        lable = entry.status_value()
+
+        #Check
+        self.assertEqual(lable, 0)
+
+    def test_status_value_1(self):
+            # Precondition
+            entry = LibraryEntry(status = LibraryEntry.STATUS_PLAYING)
+
+            #Call
+            lable = entry.status_value()
+
+            #Check
+            self.assertEqual(lable, 1)
+            
+
+    def test_status_value_0(self):
+            # Precondition
+            entry = LibraryEntry(status = LibraryEntry.STATUS_COMPLETED)
+
+            #Call
+            lable = entry.status_value()
+
+            #Check
+            self.assertEqual(lable, 2)
+
+    def test_status_value_0(self):
+            # Precondition
+            entry = LibraryEntry(status = LibraryEntry.STATUS_DROPPED)
+
+            #Call
+            lable = entry.status_value()
+
+            #Check
+            self.assertEqual(lable, 3)
+
+    def test_status_value_error(self):
+            # Precondition
+            entry = LibraryEntry(status = " ")
+
+            #Call
+            lable = entry.status_value()
+
+            #Check
+            self.assertEqual(lable, -1)
