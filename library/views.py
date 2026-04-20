@@ -78,12 +78,22 @@ def add_game(request):
                 "error": str(e)
             }, status=400)
         
+        try:
+            if not (isinstance(user, str)):
+                return error("Invalid user")
+            if user == "":
+                return error("Not allowed null values")
+        except Exception as e:
+            JsonResponse({
+                "error": str(e)
+            }, status = 401)
+
         #to create a dictionary and finaly show it 
         entry = LibraryEntry.objects.create(
             external_game_id = external_game_id,
             status = status.lower(),
             hours_played = hours_played,
-            user = user
+            user = request.user
         )
 
         # The JSON response to show the info.
@@ -112,7 +122,7 @@ def add_game(request):
 def get_id_game(request, id):
 
     entry = LibraryEntry.objects.get(id=id)
-
+    
     #Get an specific info form a certain id
     if request.method == "GET":
         if entry is None:
@@ -131,6 +141,14 @@ def get_id_game(request, id):
                 "error": "invalid_json",
             "message": "Body is not valid JSON"
             }, status=400)
+        
+        try:
+            request.user.is_authenticated
+        except AttributeError:
+            return JsonResponse({
+                "error": "user_not_authenticated",
+                "message": "User is not authenticated"
+            }, status=404)
         
         if "status" in data:
             entry.status = data["status"]
@@ -229,4 +247,3 @@ def me(request):
         "username": user.username
     })
 
- 
