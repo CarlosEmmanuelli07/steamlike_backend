@@ -108,9 +108,10 @@ def add_game(request):
     # List all games
     if request.method == "GET":
 
-        entry = LibraryEntry.objects.all()
+        entry = LibraryEntry.objects.filter(user=request.user)
 
         d_games = list(entry.values(
+            "id",
             "external_game_id",
             "status",
             "hours_played",
@@ -120,8 +121,20 @@ def add_game(request):
 
 @csrf_exempt
 def get_id_game(request, id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            "error": "user_not_authenticated",
+            "message": "You must be logged in to access this resource"
+        }, status=401)
+    
 
-    entry = LibraryEntry.objects.get(id=id)
+    entry = LibraryEntry.objects.filter(user=request.user, id=id).first()
+
+    if entry is None:
+        return JsonResponse({
+        "error": "not_found",
+        "message": "theres no game with that id"
+    }, status=404)
     
     #Get an specific info form a certain id
     if request.method == "GET":
@@ -129,11 +142,12 @@ def get_id_game(request, id):
             return JsonResponse({
                 "error": "not_found",
                 "message": "The ID does not exists"
-            }, status = 404)
+            }, status = 401)
         return JsonResponse(entry, safe=False)
     
     # Update the data for a certain id.
     if request.method == "PATCH":
+
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -141,15 +155,7 @@ def get_id_game(request, id):
                 "error": "invalid_json",
             "message": "Body is not valid JSON"
             }, status=400)
-        
-        try:
-            request.user.is_authenticated
-        except AttributeError:
-            return JsonResponse({
-                "error": "user_not_authenticated",
-                "message": "User is not authenticated"
-            }, status=404)
-        
+            
         if "status" in data:
             entry.status = data["status"]
 
