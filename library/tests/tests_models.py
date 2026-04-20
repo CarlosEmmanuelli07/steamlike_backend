@@ -170,3 +170,5 @@ class LibraryEntryHoursPlayedLabel(TestCase):
 
             #Check
             self.assertEqual(lable, -1)
+    
+    
