@@ -146,7 +146,11 @@ if user is not None:
     login(request, user)
     # login:
     #  - crea una sesión en el servidor
+<<<<<<< HEAD
     #  - asocia la sesión al usuario
+=======
+    #  - asocia la sesión al usuarioa
+>>>>>>> DWES2
     #  - provoca el envío de la cookie de sesión al cliente
 ```
 

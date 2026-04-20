@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 class LibraryEntry(models.Model):
     STATUS_WISHLIST = "wishlist"
@@ -16,6 +17,14 @@ class LibraryEntry(models.Model):
     external_game_id = models.CharField(max_length=100, unique=True)
     status = models.CharField(max_length=20, default=STATUS_WISHLIST)
     hours_played = models.IntegerField(default=0)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="library_entries",
+    )
+
 
     # --- Simple methods for easy unit tests (not used by the exercises) ---
 
