@@ -3,9 +3,9 @@ from django.urls import path, include
 from library.views import health
 from library.views import add_game
 from library.views import get_id_game
-from library.views import add_user
-from library.views import verify_user
-from library.views import me
+from auth_api.views import add_user
+from auth_api.views import verify_user
+from auth_api.views import me
 
 urlpatterns = [
     path("admin/", admin.site.urls),
