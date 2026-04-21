@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     "corsheaders",
 
     # Local apps
-    "library",
+    "library", "auth_api",
 ]
 
 MIDDLEWARE = [

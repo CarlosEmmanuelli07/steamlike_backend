@@ -1,4 +1,6 @@
-from django.test import TestCase
+from django.test import TestCase, Client
+from django.contrib.auth import get_user_model
+from library.models import LibraryEntry
 
 class LibraryEntryExternalIdLengthTests(TestCase):
     def test_health(self):
@@ -18,3 +20,99 @@ class LibraryEntryExternalIdLengthTests(TestCase):
         self.assertEqual(response.json()["status"], "ok")
         # Asegura que la respuesta no contiene información que no debería aparecer.
         self.assertNotIn("paco", response.json())
+
+class RegisterUserTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.url = "/api/auth/register/"
+        self.User = get_user_model()
+
+    def test_register_user_success(self):
+        data = {
+            "user": "testuser",
+            "password": "testpassword"
+        }
+        response = self.client.post(self.url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json(), {"message": "ok", "details": {"User created successfully": "ok"}})
+        self.assertTrue(self.User.objects.filter(username="testuser").exists())
+
+    def test_register_user_missing_fields(self):
+        data = {
+            "user": "testuser"
+        }
+        response = self.client.post(self.url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
+
+    def test_register_user_invalid_password(self):
+        data = {
+            "user": "testuser",
+            "password": 12345
+        }
+        response = self.client.post(self.url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
+
+    def test_register_user_duplicate_username(self):
+        self.User.objects.create_user(username="testuser", password="testpassword")
+        data = {
+            "user": "testuser",
+            "password": "newpassword"
+        }
+        response = self.client.post(self.url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
+
+    def test_register_user_invalid_json(self):
+        response = self.client.post(self.url, "invalid json", content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
+
+class LoginUserTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.url = "/api/auth/login/"
+        self.User = get_user_model()
+        self.User.objects.create_user(username="testuser", password="testpassword")
+
+    def test_login_user_success(self):
+        data = {
+            "user": "testuser",
+            "password": "testpassword"
+        }
+        response = self.client.post(self.url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"message": "ok", "details": {"Login successful": "ok"}})
+
+    def test_login_user_invalid_credentials(self):
+        data = {
+            "user": "testuser",
+            "password": "wrongpassword"
+        }
+        response = self.client.post(self.url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("error", response.json())
+
+    def test_login_user_invalid_json(self):
+        response = self.client.post(self.url, "invalid json", content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
+
+class MeUserTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.url = "/api/auth/me/"
+        self.User = get_user_model()
+        self.user = self.User.objects.create_user(username="testuser", password="testpassword")
+
+    def test_me_unauthenticated(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("NO AUTHENTICATED", response.json())
+    
+    def test_me_authenticated(self):
+        self.client.login(username="testuser", password="testpassword")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"username": "testuser"})

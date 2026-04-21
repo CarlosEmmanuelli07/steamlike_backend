@@ -5,26 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import LibraryEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login
-
+from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400
+# Create your views here.
 @require_GET
 def health(request):
     return JsonResponse({"status": "ok"})
 
-## Error function
-def error(details):
-    return JsonResponse({
-        "error": "validation_error",
-        "message": "wrong data introduced",
-        "details": { "field" : details }
-    }, status = 400)
 
-# We make a function to refer to any game that alreaddy exists in the DB.
-def duplicated_error(details):
-    return JsonResponse({
-        "error": "duplicate_entry",
-        "message": "That info already exists",
-        "details": { details: "duplicate"}
-    }, status = 400)
 
 # We add a game to the program.
 @csrf_exempt
@@ -52,9 +39,7 @@ def add_game(request):
             if external_game_id == "":
                 return error("Not allowed null values")
         except Exception as e:
-            JsonResponse({
-                "error": str(e)
-            }, status = 400)
+            return error400(str(e))
         #check if the status is in the correct format and catch the exception
         try:
             if not (status.lower() == "playing" or status.lower() == "completed" or status.lower() == "whishlist" or status.lower() == "dropped"):
@@ -62,9 +47,7 @@ def add_game(request):
             if status == "":
                 return error("Not allowed null values")
         except Exception as e:
-            JsonResponse({
-                "error": error(e)
-            }, status = 400)
+            return error400(str(e))
         
         #Check the hours played correct format and catch the exception
         try:
@@ -74,9 +57,7 @@ def add_game(request):
             if hours_played < 0:
                 raise ValueError
         except (TypeError, ValueError) as e:
-            return JsonResponse({
-                "error": str(e)
-            }, status=400)
+            return error400(str(e))
         
         try:
             if not (isinstance(user, str)):
@@ -84,9 +65,7 @@ def add_game(request):
             if user == "":
                 return error("Not allowed null values")
         except Exception as e:
-            JsonResponse({
-                "error": str(e)
-            }, status = 401)
+            return error401(str(e))
 
         #to create a dictionary and finaly show it 
         entry = LibraryEntry.objects.create(
@@ -121,28 +100,19 @@ def add_game(request):
 
 @csrf_exempt
 def get_id_game(request, id):
-    if not request.user.is_authenticated:
-        return JsonResponse({
-            "error": "user_not_authenticated",
-            "message": "You must be logged in to access this resource"
-        }, status=401)
     
-
+    if not request.user.is_authenticated:
+        return error401("user does not exists")
+    
     entry = LibraryEntry.objects.filter(user=request.user, id=id).first()
 
     if entry is None:
-        return JsonResponse({
-        "error": "not_found",
-        "message": "theres no game with that id"
-    }, status=404)
+        return error404("The ID does not exists")
     
     #Get an specific info form a certain id
     if request.method == "GET":
         if entry is None:
-            return JsonResponse({
-                "error": "not_found",
-                "message": "The ID does not exists"
-            }, status = 401)
+            return error401("user does not exists")
         return JsonResponse(entry, safe=False)
     
     # Update the data for a certain id.
@@ -151,10 +121,7 @@ def get_id_game(request, id):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({
-                "error": "invalid_json",
-            "message": "Body is not valid JSON"
-            }, status=400)
+            return error400("Invalid JSON format")
             
         if "status" in data:
             entry.status = data["status"]
