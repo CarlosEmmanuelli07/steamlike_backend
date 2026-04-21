@@ -139,3 +139,26 @@ def get_id_game(request, id):
             "user": entry.user.username
         }, status = 200)
     
+    # Update full data for a certain id.
+    if request.method == "PUT":
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return error400("Invalid JSON format")
+            
+        if "status" in data:
+            entry.status = data["status"]
+
+        if "hours_played" in data:
+            entry.hours_played = data["hours_played"]
+
+        entry.save()
+
+        return JsonResponse({
+            "message": "update",
+            "id": entry.external_game_id,
+            "status": entry.status,
+            "hours_played": entry.hours_played,
+            "user": entry.user.username
+        }, status = 200)

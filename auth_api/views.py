@@ -101,3 +101,13 @@ def me(request):
         "username": user.username
     }, status=200)
 
+def logout_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    if not request.user.is_authenticated:
+        return error("user does not exists")
+
+    from django.contrib.auth import logout
+    logout(request)
+    return okey200("Logout successful")
