@@ -112,8 +112,13 @@ def get_id_game(request, id):
     #Get an specific info form a certain id
     if request.method == "GET":
         if entry is None:
-            return error401("user does not exists")
-        return JsonResponse(entry, safe=False)
+            return error404("user does not exists")
+        return JsonResponse({
+            "id": entry.id,
+            "external_game_id": entry.external_game_id,
+            "status": entry.status,
+            "hours_played": entry.hours_played
+        }, safe=False)
     
     # Update the data for a certain id.
     if request.method == "PATCH":

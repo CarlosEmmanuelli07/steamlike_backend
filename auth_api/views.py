@@ -7,6 +7,7 @@ from library.models import LibraryEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login
 from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400  
+from django.contrib.auth import logout
 # Create your views here.
 
 @csrf_exempt
@@ -57,7 +58,7 @@ def verify_user(request):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return error400("invalid json")
+            return error401("invalid json")
         username = data.get("user")
         password = data.get("password")
     except Exception as e:
@@ -80,27 +81,37 @@ def me(request):
         return JsonResponse({"error": "Only GET allowed"}, status = 405)
     
     if not request.user.is_authenticated:
-        return error("user does not exists")
+        return JsonResponse({"error": "User not authenticated"}, status=401)
 
     user = request.user
-
-    if request.method == "POST":
-        data = json.loads(request.body)
-        
-        user.username = data.get("username", user.username)
-        password = data.get("password")
-
-        if isinstance(password, str) and len(password) >= 8:
-            user.set_password(password)
-        else:
-            return error("invalid password")
-        user.save()
 
     return JsonResponse({
         "id": user.id,
         "username": user.username
     }, status=200)
 
+@csrf_exempt
+def password_change(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        if not request.user.is_authenticated:
+            return error401("no authenticated")
+        
+        old_password = data.get("old_password")
+        new_password = data.get("new_password")
+
+        user = request.user
+        if not user.check_password(old_password):
+            return error401("Incorrect old password")
+        
+        if not isinstance(new_password, str) or len(new_password) < 8:
+            return error400("New password must be a string with at least 8 characters")
+            
+        user.set_password(new_password)
+        user.save()
+        return okey200("Password updated successfully")
+
+@csrf_exempt
 def logout_view(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
@@ -108,6 +119,5 @@ def logout_view(request):
     if not request.user.is_authenticated:
         return error("user does not exists")
 
-    from django.contrib.auth import logout
     logout(request)
     return okey200("Logout successful")

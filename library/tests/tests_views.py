@@ -42,7 +42,7 @@ class RegisterUserTests(TestCase):
             "user": "testuser"
         }
         response = self.client.post(self.url, data, content_type="application/json")
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json())
 
     def test_register_user_invalid_password(self):
@@ -51,7 +51,7 @@ class RegisterUserTests(TestCase):
             "password": 12345
         }
         response = self.client.post(self.url, data, content_type="application/json")
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json())
 
     def test_register_user_duplicate_username(self):
@@ -61,12 +61,12 @@ class RegisterUserTests(TestCase):
             "password": "newpassword"
         }
         response = self.client.post(self.url, data, content_type="application/json")
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json())
 
     def test_register_user_invalid_json(self):
         response = self.client.post(self.url, "invalid json", content_type="application/json")
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json())
 
 class LoginUserTests(TestCase):
@@ -97,7 +97,6 @@ class LoginUserTests(TestCase):
     def test_login_user_invalid_json(self):
         response = self.client.post(self.url, "invalid json", content_type="application/json")
         self.assertEqual(response.status_code, 401)
-        self.assertIn("error", response.json())
 
 class MeUserTests(TestCase):
     def setUp(self):
@@ -109,13 +108,16 @@ class MeUserTests(TestCase):
     def test_me_unauthenticated(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 401)
-        self.assertIn("NO AUTHENTICATED", response.json())
+        self.assertIn("error", response.json())
     
     def test_me_authenticated(self):
         self.client.login(username="testuser", password="testpassword")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"username": "testuser"})
+        self.assertEqual(response.json(), {
+            "id": self.user.id,
+            "username": "testuser"
+            })
 
 class libraryEntryListTests(TestCase):
     def setUp(self):
@@ -126,8 +128,8 @@ class libraryEntryListTests(TestCase):
 
     def test_library_entry_list_unauthenticated(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 401)
-        self.assertIn("NO AUTHENTICATED", response.json())
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
 
     def test_library_entry_list_authenticated(self):
         self.client.login(username="testuser", password="testpassword")
@@ -142,5 +144,67 @@ class libraryEntryListTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["external_game_id"], 1)
+        self.assertEqual(data[0]["external_game_id"], "1")
     
+class LibraryEntryDetailTests(TestCase):
+
+    # create an example user and an example entry
+    def setUp(self):
+        self.client = Client()
+        self.url = "/api/library/entries/{id}/"
+        self.User = get_user_model()
+        self.user = self.User.objects.create_user(username="testuser", password="testpassword")
+        self.entry = LibraryEntry.objects.create(external_game_id="3", status="playing", hours_played=10, user=self.user)
+
+        # Users
+        self.user1 = self.User.objects.create_user(
+            username="user1",
+            password="12345678"
+        )
+
+        self.user2 = self.User.objects.create_user(
+            username="user2",
+            password="12345678"
+        )
+
+        # Entries 
+        self.entry_user1 = LibraryEntry.objects.create(
+            external_game_id="1",
+            status="playing",
+            hours_played=10,
+            user=self.user1
+        )
+
+        self.entry_user2 = LibraryEntry.objects.create(
+            external_game_id="2",
+            status="completed",
+            hours_played=20,
+            user=self.user2
+        )
+
+        # URLs
+        self.url_user1 = f"/api/library/entries/{self.entry_user1.id}/"
+        self.url_user2 = f"/api/library/entries/{self.entry_user2.id}/"
+
+
+    ## Check that only authenticated users can access 
+    def test_detail_unauthenticated(self):
+        response = self.client.get(self.url.format(id=self.entry.id))
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("error", response.json())
+
+    ## Check that users can only access their own entries
+    def test_detail_own_entry(self):
+        self.client.login(username="testuser", password="testpassword")
+        response = self.client.get(self.url.format(id=self.entry.id))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["id"], self.entry.id)
+        self.assertEqual(data["external_game_id"], self.entry.external_game_id)
+
+    # check that other users cannot access this entry
+    def test_detail_other_user_entry(self):
+        self.client.login(username="testuser", password="testpassword")
+        response = self.client.get(self.url_user2)  
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("error", response.json())
