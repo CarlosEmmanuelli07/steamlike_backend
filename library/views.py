@@ -5,7 +5,8 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import LibraryEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login
-from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400
+from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400, error502
+import requests
 # Create your views here.
 @require_GET
 def health(request):
@@ -28,7 +29,7 @@ def add_game(request):
         external_game_id = data.get("external_game_id")
         status = data.get("status")
         hours_played = data.get("hours_played")
-        user = data.get("user")
+        user = request.user
         
         #Check if the id is in correct format and catch the exception.
         try:
@@ -42,7 +43,7 @@ def add_game(request):
             return error400(str(e))
         #check if the status is in the correct format and catch the exception
         try:
-            if not (status.lower() == "playing" or status.lower() == "completed" or status.lower() == "whishlist" or status.lower() == "dropped"):
+            if not (status.lower() == "playing" or status.lower() == "completed" or status.lower() == "wishlist" or status.lower() == "dropped"):
                 return error("Invalid status")
             if status == "":
                 return error("Not allowed null values")
@@ -167,3 +168,33 @@ def get_id_game(request, id):
             "hours_played": entry.hours_played,
             "user": entry.user.username
         }, status = 200)
+    
+
+@require_GET
+def catalog_search(request):
+    q = request.GET.get("q")
+
+    if not q or q.strip() == "":
+        return error400("Query parameter 'q' is required and cannot be empty")
+    # Simulate a search in the catalog (replace with actual search logic)
+    response = requests.get(
+        "https://www.cheapshark.com/api/1.0/games",
+        params={"title": q}
+    )
+
+    if response.status_code != 200:
+        return error502("Failed to fetch data from external API")
+
+    data = response.json()
+
+    result = []
+    for game in data:
+        result.append({
+            "id": game.get("gameID"),
+            "title": game.get("external"),
+            "cheapest_price": game.get("cheapest"),
+            "thumb": game.get("thumb"),
+            "steam_link": f"https://store.steampowered.com/app/{game.get('gameID')}"
+        })
+    return JsonResponse(result, safe=False)
+
