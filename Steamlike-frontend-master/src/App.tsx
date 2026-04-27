@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
@@ -10,8 +10,17 @@ import LibraryDetail from "./pages/LibraryDetail";
 import CatalogSearch from "./pages/CatalogSearch";
 import ChangePassword from "./pages/ChangePassword";
 import DeleteAccount from "./pages/DeleteAccount";
+import { useEffect } from "react";
 
 export default function App() {
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    fetch("https://steamlike-backend-c3l9.onrender.com/api/home/")
+      .then(res => res.json())
+      .then(data => setMessage(data.message));
+  }, []);
+
   return (
     <Routes>
       <Route element={<Layout />}>

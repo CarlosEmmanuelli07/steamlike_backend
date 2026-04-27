@@ -15,7 +15,6 @@ def health(request):
 def home(request):
     return render(request, "home.html")
 
-
 # We add a game to the program.
 @csrf_exempt
 def add_game(request):
