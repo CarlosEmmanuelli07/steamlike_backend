@@ -7,13 +7,17 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-  && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
+# Recolectar estaticos
+RUN python manage.py collectstatic --noinput || true
+
 EXPOSE 8000
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Usar Gunicorn en produccion
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "steamlike_backend.wsgi:application"]
