@@ -6,11 +6,14 @@ from .models import LibraryEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login
 from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400
+from django.shortcuts import render
 # Create your views here.
 @require_GET
 def health(request):
     return JsonResponse({"status": "ok"})
 
+def home(request):
+    return render(request, "home.html")
 
 
 # We add a game to the program.
