@@ -13,7 +13,7 @@ def health(request):
     return JsonResponse({"status": "ok"})
 
 
-
+""" Views for the library app. """
 # We add a game to the program.
 @csrf_exempt
 def add_game(request):
@@ -198,3 +198,45 @@ def catalog_search(request):
         })
     return JsonResponse(result, safe=False)
 
+@csrf_exempt
+def catalog_resolve(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return error400("Invalid JSON format")
+
+        game_ids = data.get("external_game_id")
+
+        if not game_ids:
+            return error400("Game ID is required")
+
+        if not isinstance(game_ids, list):
+            game_ids = [game_ids]
+
+        results = []
+
+        for game_id in game_ids:
+            response = requests.get(
+                "https://www.cheapshark.com/api/1.0/games",
+                params={"id": game_id},
+                timeout=10
+            )
+
+            if response.status_code != 200:
+                continue  # o guarda error si quieres
+
+            game_data = response.json()
+            game = game_data.get("info")
+
+            if not game:
+                continue
+
+            results.append({
+                "external_game_id": game_id,
+                "title": game.get("title"),
+                "thumb": game.get("thumb"),
+                "steam_link": f"https://store.steampowered.com/app/{game_id}"
+            })
+
+        return JsonResponse(results, safe=False, status=200)

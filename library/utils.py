@@ -69,3 +69,10 @@ def error502(details):
         "message": "Bad Gateway",
         "details": { details: "Bad Gateway"}
     }, status = 502)
+
+def error503(details):
+    return JsonResponse({
+        "error": "Service Unavailable",
+        "message": "Service Unavailable",
+        "details": { details: "Service Unavailable"}
+    }, status = 503)
