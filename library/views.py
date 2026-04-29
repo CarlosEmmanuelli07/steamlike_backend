@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login
 from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400
 from django.shortcuts import render
+from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400, error502
+import requests
 # Create your views here.
 @require_GET
 def health(request):
@@ -15,6 +17,8 @@ def health(request):
 def home(request):
     return render(request, "home.html")
 
+
+""" Views for the library app. """
 # We add a game to the program.
 @csrf_exempt
 def add_game(request):
@@ -30,7 +34,7 @@ def add_game(request):
         external_game_id = data.get("external_game_id")
         status = data.get("status")
         hours_played = data.get("hours_played")
-        user = data.get("user")
+        user = request.user
         
         #Check if the id is in correct format and catch the exception.
         try:
@@ -44,7 +48,7 @@ def add_game(request):
             return error400(str(e))
         #check if the status is in the correct format and catch the exception
         try:
-            if not (status.lower() == "playing" or status.lower() == "completed" or status.lower() == "whishlist" or status.lower() == "dropped"):
+            if not (status.lower() == "playing" or status.lower() == "completed" or status.lower() == "wishlist" or status.lower() == "dropped"):
                 return error("Invalid status")
             if status == "":
                 return error("Not allowed null values")
@@ -169,3 +173,75 @@ def get_id_game(request, id):
             "hours_played": entry.hours_played,
             "user": entry.user.username
         }, status = 200)
+    
+
+@require_GET
+def catalog_search(request):
+    q = request.GET.get("q")
+
+    if not q or q.strip() == "":
+        return error400("Query parameter 'q' is required and cannot be empty")
+    # Simulate a search in the catalog (replace with actual search logic)
+    response = requests.get(
+        "https://www.cheapshark.com/api/1.0/games",
+        params={"title": q}
+    )
+
+    if response.status_code != 200:
+        return error502("Failed to fetch data from external API")
+
+    data = response.json()
+
+    result = []
+    for game in data:
+        result.append({
+            "id": game.get("gameID"),
+            "title": game.get("external"),
+            "cheapest_price": game.get("cheapest"),
+            "thumb": game.get("thumb"),
+            "steam_link": f"https://store.steampowered.com/app/{game.get('gameID')}"
+        })
+    return JsonResponse(result, safe=False)
+
+@csrf_exempt
+def catalog_resolve(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return error400("Invalid JSON format")
+
+        game_ids = data.get("external_game_id")
+
+        if not game_ids:
+            return error400("Game ID is required")
+
+        if not isinstance(game_ids, list):
+            game_ids = [game_ids]
+
+        results = []
+
+        for game_id in game_ids:
+            response = requests.get(
+                "https://www.cheapshark.com/api/1.0/games",
+                params={"id": game_id},
+                timeout=10
+            )
+
+            if response.status_code != 200:
+                continue  # o guarda error si quieres
+
+            game_data = response.json()
+            game = game_data.get("info")
+
+            if not game:
+                continue
+
+            results.append({
+                "external_game_id": game_id,
+                "title": game.get("title"),
+                "thumb": game.get("thumb"),
+                "steam_link": f"https://store.steampowered.com/app/{game_id}"
+            })
+
+        return JsonResponse(results, safe=False, status=200)
