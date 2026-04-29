@@ -14,10 +14,6 @@ import requests
 def health(request):
     return JsonResponse({"status": "ok"})
 
-def home(request):
-    return render(request, "home.html")
-
-
 """ Views for the library app. """
 # We add a game to the program.
 @csrf_exempt

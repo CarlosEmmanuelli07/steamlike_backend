@@ -7,7 +7,6 @@ from library.views import catalog_search
 from auth_api.views import add_user, password_change, logout
 from auth_api.views import verify_user
 from auth_api.views import me
-from library.views import home
 
 from library.views import catalog_resolve
 urlpatterns = [
@@ -21,7 +20,6 @@ urlpatterns = [
     path("api/auth/logout/", logout),
     path("api/users/me/", me),
     path("api/users/me/password/", password_change),
-    path("", home, name="home"),
     path("api/catalog/search/", catalog_search),
     path("api/catalog/resolve/", catalog_resolve)
 ]
