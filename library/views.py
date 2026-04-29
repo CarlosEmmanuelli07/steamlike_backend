@@ -191,7 +191,7 @@ def catalog_search(request):
     result = []
     for game in data:
         result.append({
-            "id": game.get("gameID"),
+            "external_game_id": game.get("gameID"),
             "title": game.get("external"),
             "cheapest_price": game.get("cheapest"),
             "thumb": game.get("thumb"),
