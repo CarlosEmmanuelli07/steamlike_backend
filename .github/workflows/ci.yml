@@ -3,7 +3,7 @@ name: CI + Deploy to Render
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build-and-deploy:
@@ -29,3 +29,5 @@ jobs:
 
       - name: Trigger Render Deploy Hook
         run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+
+        
