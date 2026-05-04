@@ -26,7 +26,9 @@ jobs:
       - name: Run Django tests
         run: |
           python manage.py test
+        env:
+          DATABASE_ENGINE: django.db.backends.sqlite3
+          DATABASE_NAME: ":memory:"
 
       - name: Trigger Render Deploy Hook
-        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
-
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
