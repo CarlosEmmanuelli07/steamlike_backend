@@ -183,8 +183,6 @@ def catalog_search(request):
         params={"title": q}
     )
 
-
-
     if response.status_code != 200:
         return error502("Failed to fetch data from external API")
 
