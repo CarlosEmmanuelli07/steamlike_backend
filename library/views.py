@@ -239,6 +239,5 @@ def catalog_resolve(request):
                 "thumb": game.get("thumb"),
                 "steam_link": f"https://store.steampowered.com/app/{game_id}"
             })
-            
 
         return JsonResponse(results, safe=False, status=200)
