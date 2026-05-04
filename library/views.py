@@ -177,7 +177,7 @@ def catalog_search(request):
 
     if not q or q.strip() == "":
         return error400("Query parameter 'q' is required and cannot be empty")
-    # Simulate a search in the catalog (replace with actual search logic)
+    # Simulate a search in the catalog (replace with actual search logic) pacos API
     response = requests.get(
         "https://www.cheapshark.com/api/1.0/games",
         params={"title": q}
