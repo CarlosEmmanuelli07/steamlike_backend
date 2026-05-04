@@ -74,6 +74,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "steamlike_backend.wsgi.application"
 
+if os.getenv('GITHUB_ACTIONS') == 'true':
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",

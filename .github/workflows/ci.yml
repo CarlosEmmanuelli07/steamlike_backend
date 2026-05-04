@@ -24,9 +24,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Django tests
+        env:
+          GITHUB_ACTIONS: true
         run: |
           python manage.py test
-        env:
           DATABASE_ENGINE: django.db.backends.sqlite3
           DATABASE_NAME: ":memory:"
 
