@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -24,12 +23,8 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Django tests
-        env:
-          GITHUB_ACTIONS: true
         run: |
           python manage.py test
-          DATABASE_ENGINE: django.db.backends.sqlite3
-          DATABASE_NAME: ":memory:"
 
       - name: Trigger Render Deploy Hook
         run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
