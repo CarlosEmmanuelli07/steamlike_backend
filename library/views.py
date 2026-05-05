@@ -2,6 +2,8 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
+
+from library.catalog_service import CatalogService
 from .models import LibraryEntry
 from django.shortcuts import render
 from .utils import error, duplicated_error, error401, error403, error404, error400, error502
@@ -174,67 +176,31 @@ def catalog_search(request):
 
     if not q or q.strip() == "":
         return error400("Query parameter 'q' is required and cannot be empty")
-    # Simulate a search in the catalog (replace with actual search logic)
-    response = requests.get(
-        "https://www.cheapshark.com/api/1.0/games",
-        params={"title": q}
-    )
 
-    if response.status_code != 200:
+    service = CatalogService()
+    data = service.search_games(q)
+
+    if data is None:
         return error502("Failed to fetch data from external API")
 
-    data = response.json()
-
-    result = []
-    for game in data:
-        result.append({
-            "external_game_id": game.get("gameID"),
-            "title": game.get("external"),
-            "cheapest_price": game.get("cheapest"),
-            "thumb": game.get("thumb"),
-            "steam_link": f"https://store.steampowered.com/app/{game.get('gameID')}"
-        })
-    return JsonResponse(result, safe=False)
+    return JsonResponse(data, safe=False)
 
 @csrf_exempt
 def catalog_resolve(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return error400("Invalid JSON format")
+    if request.method != "POST":
+        return error400("Only POST allowed")
 
-        game_ids = data.get("external_game_id")
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return error400("Invalid JSON format")
 
-        if not game_ids:
-            return error400("Game ID is required")
+    game_ids = data.get("external_game_id")
 
-        if not isinstance(game_ids, list):
-            game_ids = [game_ids]
+    if not game_ids:
+        return error400("Game ID is required")
 
-        results = []
+    service = CatalogService()
+    results = service.resolve_games(game_ids)
 
-        for game_id in game_ids:
-            response = requests.get(
-                "https://www.cheapshark.com/api/1.0/games",
-                params={"id": game_id},
-                timeout=10
-            )
-
-            if response.status_code != 200:
-                continue  # o guarda error si quieres
-
-            game_data = response.json()
-            game = game_data.get("info")
-
-            if not game:
-                continue
-
-            results.append({
-                "external_game_id": game_id,
-                "title": game.get("title"),
-                "thumb": game.get("thumb"),
-                "steam_link": f"https://store.steampowered.com/app/{game_id}"
-            })
-
-        return JsonResponse(results, safe=False, status=200)
+    return JsonResponse(results, safe=False, status=200)

@@ -11,45 +11,51 @@ from .utils import error, duplicated_error, error401, error403, okey201, okey200
 from django.contrib.auth import logout
 import os
 import requests
+from .services.email import send_email
 # Create your views here.
 
 @csrf_exempt
 def add_user(request):
 
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return error400("invalid json")
-        user = data.get("user")
-        password = data.get("password")
-        
-        try:
-            User = get_user_model()
+    if request.method != "POST":
+        return error400("invalid method")
 
-            if User.objects.filter(username=user).exists():
-                return duplicated_error("user already exists")
-        except Exception as e:
-                return JsonResponse({
-                    "error": str(e)
-                }, status = 400)
-        
-        try:
-            if not (isinstance(password, str)):
-                return error("invalid password")
-        except Exception as e:
-            return error403(str(e))
-        
-        User = get_user_model()
-        try:
-            new_user = User.objects.create_user(
-                username=user,
-                password=password
-            )
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-        
-        return okey201("User created successfully")
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return error400("invalid json")
+
+    user = data.get("user")
+    password = data.get("password")
+    email = data.get("email")
+
+    User = get_user_model()
+
+    if User.objects.filter(username=user).exists():
+        return duplicated_error("user already exists")
+
+    if not isinstance(password, str):
+        return error("invalid password")
+
+    try:
+        new_user = User.objects.create_user(
+            username=user,
+            password=password,
+            email=email
+        )
+    except Exception as e:
+        return error400(str(e))
+
+    try:
+        send_email(
+            to=new_user.email,
+            subject="Welcome to Steamlike!",
+            text=f"Hello {new_user.username}, welcome to Steamlike!"
+        )
+    except Exception as e:
+        return error503(f"Failed to send welcome email: {str(e)}")
+
+    return okey201("User created successfully")
 
 @csrf_exempt
 def verify_user(request):
