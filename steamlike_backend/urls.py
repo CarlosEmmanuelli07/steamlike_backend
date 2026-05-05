@@ -9,6 +9,7 @@ from auth_api.views import verify_user
 from auth_api.views import me
 
 from library.views import catalog_resolve
+from auth_api.views import send_email
 urlpatterns = [
     path("admin/", admin.site.urls),
     #path("api/library/", include("core.urls")),
@@ -21,5 +22,7 @@ urlpatterns = [
     path("api/users/me/", me),
     path("api/users/me/password/", password_change),
     path("api/catalog/search/", catalog_search),
-    path("api/catalog/resolve/", catalog_resolve)
+    path("api/catalog/resolve/", catalog_resolve),
+    path("api/send_email/", send_email)
+
 ]

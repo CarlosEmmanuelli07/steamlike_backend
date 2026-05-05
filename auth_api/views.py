@@ -1,13 +1,15 @@
 import json
 from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from gunicorn.config import User
 from library.models import LibraryEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login
-from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400  
+from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400, error502
 from django.contrib.auth import logout
+import os
+import requests
 # Create your views here.
 
 @csrf_exempt
@@ -121,3 +123,34 @@ def logout_view(request):
 
     logout(request)
     return okey200("Logout successful")
+
+@csrf_exempt
+@require_POST
+def send_email(request):
+    data = json.loads(request.body)
+    to = data["to"]
+    subject = data["subject"]
+    text = data["text"]
+
+    # Aquí iría la lógica para enviar el correo electrónico utilizando una biblioteca como smtplib o un servicio de terceros.
+    headres = {
+        "Authorization": f"Bearer {os.getenv('MAILEROO_TOKEN')}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "from": {"address": os.getenv("MAILEROO_FROM_ADDRESS"), "name": os.getenv("MAILEROO_FROM_NAME")},
+        "to": [{"address": to}],
+        "subject": subject,
+        "text": text
+    }
+
+    try:    
+        r = requests.post(os.getenv("MAILEROO_URL"), headers=headres, json=payload, timeout=5)
+    except requests.RequestException as e:
+        return error502(f"Failed to send email: {str(e)}")
+    
+    if r.status_code >= 400:
+        return error502(f"Failed to send email: {r.text}")
+    
+    return okey200("Email sent successfully")
