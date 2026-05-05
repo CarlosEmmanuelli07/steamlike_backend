@@ -62,3 +62,10 @@ def error400(details):
         "message": "Bad Request",
         "details": { details: "Bad Request"}
     }, status = 400)
+
+def error502(details):
+    return JsonResponse({
+        "error": "Bad Gateway",
+        "message": "Bad Gateway",
+        "details": { details: "Bad Gateway"}
+    }, status = 502)
