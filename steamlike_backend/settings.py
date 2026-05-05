@@ -36,6 +36,7 @@ INSTALLED_APPS = [
 
     # Third-party.
     "corsheaders",
+    "django_redis",
 
     # Local apps
     "library", "auth_api",
@@ -71,6 +72,18 @@ TEMPLATES = [
         },
     },
 ]
+
+import os
+
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
+    }
+}
 
 WSGI_APPLICATION = "steamlike_backend.wsgi.application"
 

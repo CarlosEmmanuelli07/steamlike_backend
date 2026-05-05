@@ -1,0 +1,12 @@
+{
+    "image": "mcr.microsoft.com/vscode/devcontainers/dotnet:0-8.0",
+    "forwardPorts": [8000],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    }
+}

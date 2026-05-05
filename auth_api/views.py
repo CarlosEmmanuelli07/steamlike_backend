@@ -6,6 +6,8 @@ from gunicorn.config import User
 from library.models import LibraryEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login
+
+from library.utils import error503
 from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400, error502
 from django.contrib.auth import logout
 import os
@@ -139,7 +141,7 @@ def send_email(request):
     }
 
     payload = {
-        "from": {"address": os.getenv("MAILEROO_FROM_ADDRESS"), "name": os.getenv("MAILEROO_FROM_NAME")},
+        "from": {"address": os.getenv("MAILEROO_FROM_ADDRESS")},
         "to": [{"address": to}],
         "subject": subject,
         "text": text
@@ -148,7 +150,7 @@ def send_email(request):
     try:    
         r = requests.post(os.getenv("MAILEROO_URL"), headers=headres, json=payload, timeout=5)
     except requests.RequestException as e:
-        return error502(f"Failed to send email: {str(e)}")
+        return error503(f"Failed to send email: {str(e)}")
     
     if r.status_code >= 400:
         return error502(f"Failed to send email: {r.text}")
