@@ -1,14 +1,13 @@
 import json
 from django.http import JsonResponse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from gunicorn.config import User
 from library.models import LibraryEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login
-
 from library.utils import error503
-from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400, error502
+from .utils import error, duplicated_error, error401, error403, okey201, okey200, error400, error502
 from django.contrib.auth import logout
 import os
 import requests

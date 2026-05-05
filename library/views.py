@@ -3,11 +3,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
 from .models import LibraryEntry
-from django.contrib.auth import get_user_model
-from django.contrib.auth import authenticate, login
-from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400
 from django.shortcuts import render
-from .utils import error, duplicated_error, error401, error403, error404, error500, okey201, okey200, error400, error502
+from .utils import error, duplicated_error, error401, error403, error404, error400, error502
 import requests
 # Create your views here.
 @require_GET
