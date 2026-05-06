@@ -1,6 +1,6 @@
 import requests
 from django.core.cache import cache
-from .utils import error, duplicated_error, error401, error403, error404, error400, error502, okey200, error503
+from .utils import error502, error503
 import logging
 
 logger = logging.getLogger(__name__)
