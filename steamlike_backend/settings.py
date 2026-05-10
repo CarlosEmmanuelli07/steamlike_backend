@@ -75,17 +75,13 @@ TEMPLATES = [
 
 import os
 
-REDIS_URL = os.getenv("REDIS_URL")
-
-if REDIS_URL:
-    LOCATION = REDIS_URL
-else:
-    LOCATION = "redis://127.0.0.1:6379/1"
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
 
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": LOCATION,
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
     }
 }
 
