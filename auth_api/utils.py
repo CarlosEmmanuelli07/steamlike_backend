@@ -69,3 +69,9 @@ def error502(details):
         "message": "Bad Gateway",
         "details": { details: "Bad Gateway"}
     }, status = 502)
+
+def okey200(details):
+    return JsonResponse({
+        "message": "ok",
+        "details": { details: "ok"}
+    }, status = 200)    
