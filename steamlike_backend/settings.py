@@ -73,10 +73,14 @@ TEMPLATES = [
     },
 ]
 
-if os.getenv("REDIS_URL"):
-    LOCATION = os.getenv("REDIS_URL")
+import os
+
+REDIS_URL = os.getenv("REDIS_URL")
+
+if REDIS_URL:
+    LOCATION = REDIS_URL
 else:
-    LOCATION = "redis://redis:6379/1"
+    LOCATION = "redis://127.0.0.1:6379/1"
 
 CACHES = {
     "default": {
