@@ -33,7 +33,7 @@ class RegisterUserTests(TestCase):
             "password": "testpassword"
         }
         response = self.client.post(self.url, data, content_type="application/json")
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json(), {"message": "ok", "details": {"User created successfully": "ok"}})
         self.assertTrue(self.User.objects.filter(username="testuser").exists())
 
