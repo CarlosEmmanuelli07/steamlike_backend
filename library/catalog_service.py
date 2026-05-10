@@ -15,6 +15,7 @@ class CatalogService:
 
         cached = cache.get(cache_key)
         if cached:
+            logger.info(f"Cache hit for search query: '{q}'")
             return cached
 
         try:
@@ -32,6 +33,8 @@ class CatalogService:
 
         if not isinstance(data, list):
             return error502("External API returned unexpected data format")
+        
+        
 
         result = []
         for game in data:
@@ -57,6 +60,7 @@ class CatalogService:
         cached = cache.get(cache_key)
 
         if cached:
+            logger.info(f"Cache hit for resolve game IDs: {game_ids}")
             return {"data": cached, "error": None}
 
         results = []
