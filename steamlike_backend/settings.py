@@ -78,23 +78,22 @@ import os
 REDIS_URL = os.getenv("REDIS_URL")
 
 if REDIS_URL:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": REDIS_URL,
-        }
-    }
+    LOCATION = REDIS_URL
 else:
-    # fallback local docker
-    REDIS_HOST = os.getenv("REDIS_HOST", "redis")
-    REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+    REDIS_HOST = os.getenv("REDIS_HOST")
+    REDIS_PORT = os.getenv("REDIS_PORT")
 
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
-        }
+    if REDIS_HOST:
+        LOCATION = f"redis://{REDIS_HOST}:{REDIS_PORT}/1"
+    else:
+        LOCATION = None
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": LOCATION,
     }
+}
 
 WSGI_APPLICATION = "steamlike_backend.wsgi.application"
 
